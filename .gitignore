@@ -1,3 +1,4 @@
 node_modules
 stegano.komodoproject
 css/dest/*.css
+css/styles.min.css

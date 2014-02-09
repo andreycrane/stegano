@@ -16,6 +16,13 @@ module.exports = function(grunt) {
             }
         },
         
+        copy: {
+            styles: {
+                src: 'css/dest/styles.min.css',
+                dest: 'css/styles.min.css'
+            }
+        },
+        
         watch: {
             grunt: {
                 files: ['Gruntfile.js']
@@ -23,7 +30,7 @@ module.exports = function(grunt) {
             
             styles: {
                 files: ['css/src/*.less'],
-                tasks: ['less']
+                tasks: ['less:style', 'copy:styles']
             }
         }
     });
@@ -34,5 +41,5 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     
     
-    grunt.registerTask('default', ['less'])
+    grunt.registerTask('default', ['less:style', 'copy:styles'])
 };
