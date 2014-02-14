@@ -98,26 +98,32 @@ define(["jquery",
          * @param {File} files объект массива с загруженым файлом
          */
         handleFile: function (file) {
-            var reader;
+            var reader,
+                upload_container;
             
-            console.log('Handled file ', file);
-            
+            upload_container = this.$el.children('#upload_container');
             reader = new FileReader();
             
-            reader.onloadstart = function (e) {
-                console.log('FileReader onloadstart ', e);
+            reader.onloadstart = function () {
+                upload_container.addClass('onloadstart');
             };
             
             reader.onprogress = function (e) {
-                console.log('FileReader progress ', e);
+                var percents = (e.loaded / e.total) * 100;
+                
+                upload_container.addClass('onprogress')
+                                .children('#progress_container')
+                                .css('width', percents + "%");
             };
             
-            reader.onload = function (e) {
-                console.log('FileReader onload ', e);
+            reader.onload = function () {
+               upload_container.addClass('onload');
             };
             
-            reader.onloadend = function (e) {
-                console.log('FileReader onloadend ', e);
+            reader.onloadend = function () {
+                setTimeout(function () {
+                    upload_container.addClass('onloadend');
+                }, 1500);
             };
             
             reader.readAsBinaryString(file);

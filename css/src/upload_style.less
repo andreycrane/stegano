@@ -1,5 +1,7 @@
 @import url(http://fonts.googleapis.com/css?family=PT+Serif+Caption&subset=cyrillic,latin);
 
+@container_background: #32442d;
+
 #upload_container {
     display: table;
     margin: auto;
@@ -10,20 +12,45 @@
     width: 300px;
     height: 200px;
     border-radius: 10px;
-    background-color: #32442d;
+    background-color: @container_background;
     background-size: contain;
     color: white;
     font-size: 20px;
     font-family: 'PT Serif Caption', serif;
     text-align: center;
     cursor: pointer;
+    opacity: 1.0;
+    transition: height 0.3s linear, opacity 1s linear;
     
-    #file_input {
-        display: none;
-    }
+    #file_input { display: none; }
     
     p {
         display: table-cell;
         vertical-align: middle;
     }
+    
+    &.onloadstart {
+        height: 20px;
+        padding-left: 0px;
+        padding-right: 0px;
+        
+        p {
+            display: none;
+        }
+    }
+    
+    &.onprogress {
+        #progress_container {
+            border-radius: 10px;
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 0%;
+            background-color: lighten(@container_background, 30%);
+        }
+    }
+    
+    &.onload { opacity: 0.0; }
+    
+    &.onloadend { display: none; }
 }
