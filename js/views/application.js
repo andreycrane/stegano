@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Модуль главного вида приложения. Данный модуль и есть
  * реализацией приложения стеганографии в браузере.
  * 
@@ -99,8 +99,17 @@ define(["jquery",
          */
         handleFile: function (file) {
             var reader,
+                that,
                 upload_container;
+                
+            console.log("File ", file);
             
+            if (file.type !== "image/bmp") {
+                alert("Разрешено использовать только BMP файлы!");
+                return;
+            }
+            
+            that = this;
             upload_container = this.$el.children('#upload_container');
             reader = new FileReader();
             
@@ -116,8 +125,11 @@ define(["jquery",
                                 .css('width', percents + "%");
             };
             
-            reader.onload = function () {
+            reader.onload = function (e) {
                upload_container.addClass('onload');
+                    that.$el.children('#source_image')
+                            .attr('src', "data:" + file.type + ";base64," +
+                                  btoa(e.target.result));
             };
             
             reader.onloadend = function () {
@@ -126,7 +138,7 @@ define(["jquery",
                 }, 1500);
             };
             
-            reader.readAsBinaryString(file);
+            reader.readAsArrayBuffer(file);
         },
         
         render: function () {
