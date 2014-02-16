@@ -8,8 +8,13 @@
 define(["jquery",
         "underscore",
         "backbone",
+        "stegano",
         "text!/templates/upload_template.html"
-], function($, _, Backbone, upload_tpl) {
+], function($,              // jQuery
+            _,              // underscore
+            Backbone,       // Backbone
+            Stegano,        // Класс стеганографии
+            upload_tpl) {   // Шаблон формы загрузки файла
     "use strict";
     
     /**
@@ -100,6 +105,7 @@ define(["jquery",
         handleFile: function (file) {
             var reader,
                 that,
+                stegano,
                 upload_container;
                 
             console.log("File ", file);
@@ -128,14 +134,15 @@ define(["jquery",
             reader.onload = function (e) {
                upload_container.addClass('onload');
                     that.$el.children('#source_image')
-                            .attr('src', "data:" + file.type + ";base64," +
-                                  btoa(e.target.result));
+                            .attr('src', URL.createObjectURL(file));
             };
             
-            reader.onloadend = function () {
+            reader.onloadend = function (e) {
                 setTimeout(function () {
                     upload_container.addClass('onloadend');
                 }, 1500);
+                
+                stegano = new Stegano(e.target.result);
             };
             
             reader.readAsArrayBuffer(file);
