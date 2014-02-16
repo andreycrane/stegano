@@ -1,6 +1,9 @@
 {
   "name": "Stegano",
   "version": "0.0.0",
+  "engines": {
+    "node": "0.10.x"
+  },
   "description": "HTML5 приложение выполняющее стеганографию",
   "main": "app.js",
   "scripts": {
