@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Модуль стеганографии. В данном модуле определен единственный класс Stegano,
  * реализующий операции стеганографии файлов BMP.
  * 
@@ -10,6 +10,7 @@ define(function () {
         setBit,         // установка бита в числе
         ab2str,
         str2ab,
+        readSteganedBytes,
         Stegano;
     /**
      * Получение бита в байте по его номеру, нумерация начинается c права на
@@ -86,6 +87,46 @@ define(function () {
         return buf;
     };
     /**
+     * Читает указанное количество зашифрованных байт в
+     * из буфера,
+     *
+     * @method readSteganedBytes
+     * @private
+     * @param {ArrayBuffer} ab буфер из которого читаем данные
+     * @param {Number} n количество байт которые необходимо прочитать
+     * @param {Number} offset отступ от начала буфера в байтах
+     * 
+     * @returns {ArrayBuffer} buf буфер с собранными данными
+     */
+    readSteganedBytes = function (ab, n, offset) {
+        var dv,         // объект представление буфера 
+            bitLength,  // длина буфера в битах
+            i,          // счетчик цикла по байтам буфера
+            cb,         // циклический счетчик бит
+            retBuff,    // буфер собираемых данных
+            arr,        // типизированный массив собираемых данных
+            buffPtr,    // указатель на байт в собираемом буфере
+            bit;
+        
+        bitLength = n * 8;
+        cb = 0;
+        buffPtr = 0;
+        retBuff = new ArrayBuffer(n);
+        arr = new Uint8Array(retBuff);
+        dv = new DataView(ab, offset, bitLength);
+        
+        for (i = 0; i < bitLength; i += 1) {
+            bit = (getBit(dv.getUint8(i), 7) > 0) ? true : false;
+            arr[buffPtr] = setBit(arr[buffPtr], cb, bit);
+            
+            buffPtr = (cb === 7) ? buffPtr + 1 : buffPtr;
+            cb = (cb < 7) ? cb + 1 : 0;
+        }
+        
+        return retBuff;
+    };
+    
+    /**
      * Класс реализующий операции стеганографии файла BMP.
      * 
      * @class Stegano
@@ -125,7 +166,7 @@ define(function () {
      * файле.
      */
     Stegano.prototype.check = function () {
-        
+        readSteganedBytes(this.abFile, 6, this.bfOffBits + 20);
     };
     /**
      * Читает скрытую информацию из файла

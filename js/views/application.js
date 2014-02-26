@@ -4,7 +4,6 @@
  * 
  * @module ApplicationView
  */
-
 define(["jquery",
         "underscore",
         "backbone",
@@ -107,8 +106,6 @@ define(["jquery",
                 that,
                 stegano,
                 upload_container;
-                
-            console.log("File ", file);
             
             if (file.type !== "image/bmp") {
                 alert("Разрешено использовать только BMP файлы!");
@@ -131,7 +128,7 @@ define(["jquery",
                                 .css('width', percents + "%");
             };
             
-            reader.onload = function (e) {
+            reader.onload = function () {
                upload_container.addClass('onload');
                     that.$el.children('#source_image')
                             .attr('src', URL.createObjectURL(file));
@@ -143,6 +140,7 @@ define(["jquery",
                 }, 1500);
                 
                 stegano = new Stegano(e.target.result);
+                stegano.check();
             };
             
             reader.readAsArrayBuffer(file);
