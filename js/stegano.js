@@ -11,6 +11,7 @@ define(function () {
         ab2str,
         str2ab,
         readSteganedBytes,
+        writeBytesSteganed,
         Stegano;
     /**
      * Получение бита в байте по его номеру, нумерация начинается c права на
@@ -125,7 +126,44 @@ define(function () {
         
         return retBuff;
     };
-    
+    /**
+     * Запись байт в буфер стеганографическим методом
+     *
+     * @method writeBytesSteganed
+     * @private
+     * @param {ArrayBuffer} ab - буфер в который производится запись 
+     * @param {ArrayBuffer} bytes - буфер с записуемыми данными
+     * @param {Number} - отступ от начала буфера в который производится запись
+     */
+    writeBytesSteganed = function (ab, bytes, offset) {
+        var abDataView, // объект представления данных для буфера в который пишем
+            btDataView, // объект представления данных для буфера из которого пишем
+            bitsLength, // длина записываемой информации в битах
+            buffPtr,    // указатель на байт в буфере из которого пишем
+            cb,         // указатель на бит в буфере из которого пишем
+            i,          // счетчик цикла, указатель на байт в буфере в который пишем
+            writeByte,  // записываемый байт
+            writeBit,   // модифицируемый стеганографической информацией
+                        // байт из буфера в который пишем 
+            bit;        // записываемый бит
+        
+        abDataView = new DataView(ab, offset);
+        btDataView = new DataView(bytes);
+        bitsLength = bytes.byteLength * 8;
+        buffPtr = 0;
+        cb = 0;
+        
+        for (i = 0; i < bitsLength; i += 1) {
+            writeByte = btDataView.getUint8(buffPtr);
+            writeBit = abDataView.getUint8(i);
+            bit = (getBit(writeByte, cb) > 0) ? true : false;
+            writeBit = setBit(writeBit, 7, bit);
+            abDataView.setUint8(i, writeBit);
+            
+            buffPtr = (cb === 7) ? buffPtr + 1 : buffPtr;
+            cb = (cb < 7) ? cb + 1 : 0;
+        }
+    };
     /**
      * Класс реализующий операции стеганографии файла BMP.
      * 
@@ -148,12 +186,6 @@ define(function () {
         // положение пиксельных данных
         // относительной начала данной структуры (в байтах)
         this.bfOffBits = dv.getUint32(0x0A, true); 
-        // вывод прочитанных данных для отладки
-        console.log("bfType: ", this.bfType.toString(16));
-        console.log("bfSize: ", this.bfSize);
-        console.log("bfReserved1: ", this.bfReserved1);
-        console.log("bfReserved2: ", this.bfReserved2);
-        console.log("bfOffBits: ", this.bfOffBits);
     };
     /**
      * Проверяет наличие скрытой информации в файле,
@@ -166,7 +198,32 @@ define(function () {
      * файле.
      */
     Stegano.prototype.check = function () {
-        readSteganedBytes(this.abFile, 6, this.bfOffBits + 20);
+        var steganedBytes,
+            steganedText,
+            steganedView,
+            sign,
+            byteLength,
+            info;
+            
+        info = {
+            Stegano: false,
+            SteganoLength: 0,
+            SteganoMax: Math.floor((this.abFile.byteLength - this.bfOffBits - 6) / 16)
+        };
+        
+        steganedBytes = readSteganedBytes(this.abFile, 6, this.bfOffBits);
+        steganedView = new DataView(steganedBytes);
+        
+        sign = String.fromCharCode(steganedView.getUint8(0),
+                                   steganedView.getUint8(1));
+        byteLength = steganedView.getUint32(2);
+        
+        if ((sign === "ST") && (byteLength > 0)) {
+            info.Stegano = true;
+            info.SteganoLength = byteLength;
+        }
+        
+        return info;
     };
     /**
      * Читает скрытую информацию из файла
@@ -175,7 +232,20 @@ define(function () {
      * @return {String} - извлеченный скрытый текст
      */
     Stegano.prototype.read = function () {
+        var steganedText,
+            steganoInfo;
         
+        steganedText = "";
+        steganoInfo = this.check();
+        
+        if (steganoInfo.Stegano) {
+            // 6 * 8 -> 6 байт записанных по одному биту в байт
+            steganedText = ab2str(readSteganedBytes(this.abFile,
+                                             steganoInfo.SteganoLength,
+                                             this.bfOffBits + (6 * 8)));
+        }
+        
+        return steganedText;
     };
     /**
      * Записывает скрываемый текст в файл
@@ -184,7 +254,27 @@ define(function () {
      * @param {String} text - строка записываемого скрываемого текста
      */
     Stegano.prototype.write = function (text) {
+        var sign,
+            txtBuff,
+            steganoHeader,
+            stHeadView;
+            
+        sign = "ST";
+        // Преобразовываем полученную строку в буфер байтов
+        txtBuff = str2ab(text);
+        // Формируем заголовок стеганографической информации
+        steganoHeader = new ArrayBuffer(6);
+        stHeadView = new DataView(steganoHeader);
         
+        stHeadView.setUint8(0, sign.charCodeAt(0));
+        stHeadView.setUint8(1, sign.charCodeAt(1));
+        stHeadView.setUint32(2, txtBuff.byteLength);
+        
+        // записываем заголовок стеганографической информации
+        writeBytesSteganed(this.abFile, steganoHeader, this.bfOffBits);
+        // записываем текст
+        // 6 * 8 -> 6 байт записанных по одному биту в байт
+        writeBytesSteganed(this.abFile, txtBuff, this.bfOffBits + (6 * 8));
     };
     
     return Stegano;
