@@ -15,7 +15,6 @@ define(["jquery",
             Stegano,        // Класс стеганографии
             upload_tpl) {   // Шаблон формы загрузки файла
     "use strict";
-    
     /**
      * Класс приложения стеганографии.
      * 
@@ -28,7 +27,7 @@ define(["jquery",
         tagName: "div",
         stegano: null,
         
-        initalize: function () { },
+        initalize: function () {},
         /**
          * Список прослушиваемых видом событий:
          *  dragOver, drop - перетаскивание файла на область загрузки;
@@ -98,7 +97,6 @@ define(["jquery",
         fileInputChange: function (event) {
             this.handleFile(event.target.files[0]);
         },
-        
         /**
          * Обработчик загруженного файл вне зависимости каким именно образом он
          * был загружен в браузер.
@@ -148,22 +146,34 @@ define(["jquery",
                     // выводим загруженное изображение
                     source_img.addClass('onloadend');
                     // переносим его по экрану влево и выводим модальное окно
-                    source_img.animate({'margin-left': '-600px' }, 500,
-                        function () { that.stegano_modal(); });
+                    source_img.animate({'margin-left': '-600px' },
+                        500,
+                        function () { that.stegano_modal(); }
+                    );
                     
                 }, 500);
                 
                 that.stegano = new Stegano(e.target.result);
             };
-            
+            // запускаем чтение файла как буфера
             reader.readAsArrayBuffer(file);
         },
-        
+        /**
+         * Метод рендеринга вида в собственный контейнер
+         *
+         * @method render
+         * @chainable
+         */
         render: function () {
             this.$el.append(upload_tpl);
             return this;
         },
-        
+        /**
+         * Вывод модального окна с скрытой в файле информацией извлеченной из
+         * загруженного файла если такая есть.
+         * 
+         * @method stegano_modal
+         */
         stegano_modal: function () {
             var modal = this.$("#stegano_modal"),
                 txt,
@@ -176,13 +186,18 @@ define(["jquery",
                 this.$("#modal-text").text(txt);
                 this.$('#symbols_cnt').text(steg_info.SteganoMax - txt.length);
             } else {
+                this.$("#modal-text").text("");
                 this.$('#symbols_cnt').text(steg_info.SteganoMax);
             }
             
             modal.attr('data-steganomax', steg_info.SteganoMax);
             modal.modal();
         },
-        
+        /**
+         * Сохранение скрытой информации в новом BMP файле.
+         *
+         * @method stegano_modal_save
+         */
         stegano_modal_save: function () {
             var modal = this.$("#stegano_modal"),
                 text,
@@ -197,14 +212,24 @@ define(["jquery",
             
             modal.modal('hide');
         },
-        
+        /**
+         * Счетчик (в символах) оставшегося места под скрываемую информацию.
+         * 
+         * @method count_max_text
+         */
         count_max_text: function () {
             var steganomax = this.$("#stegano_modal").attr('data-steganomax'),
                 modal_text_length = this.$("#modal-text").val().length;
             
             this.$('#symbols_cnt').text(parseInt(steganomax, 10) - modal_text_length);
         },
-        
+        /**
+         * Метод восстановления первичного состояния вида. Срываются
+         * изображения, заново выводиться область загрузки файла,
+         * удаляется объект стеганографии.
+         *
+         * @method close_file
+         */
         close_file: function() {
             this.stegano = null;
             
