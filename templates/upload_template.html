@@ -1,4 +1,21 @@
-﻿<div id="upload_container">
+﻿<div id="buttons_container">
+    <p class="text-center">
+        <button id="close_file_btn"
+                type="button"
+                class="btn btn-default btn-xs"
+                disabled="disabled">
+            Close
+        </button>
+        <button id="stegano_btn"
+                type="button"
+                class="btn btn-default btn-xs"
+                disabled="disabled">
+            Stegano
+        </button>
+    </p>
+</div>
+
+<div id="upload_container">
     <input type="file" id="file_input" name="file" />
     <p>Перетащите внутрь данной области
     файл, либо кликните для выбора файла.</p>
@@ -7,3 +24,19 @@
 </div>
 
 <img id="source_image" src="" />
+<img id="dest_image" src="" />
+
+<div id="stegano_modal" class="modal fade">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <textarea id="modal-text" class="form-control" rows="3"></textarea>
+                <section id="buttons">
+                    <span id="symbols_cnt">134</span>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button id="modal-save" type="button" class="btn btn-primary">Save changes</button>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>

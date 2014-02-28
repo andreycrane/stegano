@@ -26,6 +26,7 @@ define(["jquery",
     var ApplicationView = Backbone.View.extend({
         id: "application_view",
         tagName: "div",
+        stegano: null,
         
         initalize: function () { },
         /**
@@ -42,7 +43,11 @@ define(["jquery",
             'drop #upload_container': 'handleFileSelect',
             'click #upload_container': 'chooseFile',
             'click #file_input': 'fileInputClick',
-            'change #file_input': 'fileInputChange'
+            'change #file_input': 'fileInputChange',
+            'click #close_file_btn': 'close_file',
+            'click #stegano_btn': 'stegano_modal',
+            'keypress #modal-text': 'count_max_text',
+            'click #modal-save': 'stegano_modal_save'
         },
         /**
          * Обработчик события наведения на область dnd загрузки файла. Метод
@@ -104,7 +109,6 @@ define(["jquery",
         handleFile: function (file) {
             var reader,
                 that,
-                stegano,
                 upload_container;
             
             if (file.type !== "image/bmp") {
@@ -129,18 +133,27 @@ define(["jquery",
             };
             
             reader.onload = function () {
-               upload_container.addClass('onload');
-                    that.$el.children('#source_image')
-                            .attr('src', URL.createObjectURL(file));
+                upload_container.addClass('onload');
+                that.$('#source_image').attr('src', URL.createObjectURL(file));
             };
             
             reader.onloadend = function (e) {
                 setTimeout(function () {
+                    var source_img = that.$('#source_image');
+                    
                     upload_container.addClass('onloadend');
-                }, 1500);
+                    // разблокируем кнопку закрытия открытого файла
+                    that.$('#close_file_btn').removeAttr("disabled");
+                    that.$('#stegano_btn').removeAttr('disabled');
+                    // выводим загруженное изображение
+                    source_img.addClass('onloadend');
+                    // переносим его по экрану влево и выводим модальное окно
+                    source_img.animate({'margin-left': '-600px' }, 500,
+                        function () { that.stegano_modal(); });
+                    
+                }, 500);
                 
-                stegano = new Stegano(e.target.result);
-                stegano.check();
+                that.stegano = new Stegano(e.target.result);
             };
             
             reader.readAsArrayBuffer(file);
@@ -148,8 +161,64 @@ define(["jquery",
         
         render: function () {
             this.$el.append(upload_tpl);
-            
             return this;
+        },
+        
+        stegano_modal: function () {
+            var modal = this.$("#stegano_modal"),
+                txt,
+                steg_info;
+            
+            steg_info = this.stegano.check();
+            
+            if (steg_info.Stegano) {
+                txt = this.stegano.read();
+                this.$("#modal-text").text(txt);
+                this.$('#symbols_cnt').text(steg_info.SteganoMax - txt.length);
+            } else {
+                this.$('#symbols_cnt').text(steg_info.SteganoMax);
+            }
+            
+            modal.attr('data-steganomax', steg_info.SteganoMax);
+            modal.modal();
+        },
+        
+        stegano_modal_save: function () {
+            var modal = this.$("#stegano_modal"),
+                text,
+                blob;
+            
+            text = this.$('#modal-text').val();
+            this.stegano.write(text);
+            blob = new Blob([this.stegano.abFile]);
+            this.$('#dest_image').attr('src', URL.createObjectURL(blob))
+                                 .addClass('onloadend')
+                                 .animate({'margin-left': '200px' }, 800);
+            
+            modal.modal('hide');
+        },
+        
+        count_max_text: function () {
+            var steganomax = this.$("#stegano_modal").attr('data-steganomax'),
+                modal_text_length = this.$("#modal-text").val().length;
+            
+            this.$('#symbols_cnt').text(parseInt(steganomax, 10) - modal_text_length);
+        },
+        
+        close_file: function() {
+            this.stegano = null;
+            
+            this.$('#stegano_btn').attr("disabled", "disabled");
+            this.$('#close_file_btn').attr("disabled", "disabled");
+            
+            this.$('#file_input').val('');
+            this.$('#source_image, #dest_image').attr('src', '')
+                                    .removeClass('onloadend');
+            
+            this.$('#upload_container').removeClass('onloadstart ' +
+                                                    'onprogress ' +
+                                                    'onload ' +
+                                                    'onloadend');
         }
     });
     

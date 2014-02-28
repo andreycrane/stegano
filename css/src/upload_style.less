@@ -2,6 +2,15 @@
 
 @container_background: #32442d;
 
+#buttons_container {
+    margin: 0 auto;
+    margin-top: 20px;
+    
+    button {
+        width: 80px;
+    }
+}
+
 #upload_container {
     display: table;
     margin: auto;
@@ -55,11 +64,35 @@
     &.onloadend { display: none; }
 }
 
-#source_image {
-    border: none;
+#source_image,
+#dest_image {
+    display: none;
+    border: 2px dashed #a2a2a2;
+    background-color: #e6e6e6;
     position: absolute;
-    top: 0; left: 0; bottom: 0; right: 0;
+    top: 50%;
+    left: 50%;
+    margin-left: -200px;
+    margin-top: -200px;
+    padding: 5px;
+    border-radius: 20px;
     height: 400px;
     width: 400px;
-    transition: opacity 1s linear;
+    
+    &.onloadend {
+        display: block !important;
+    }
+}
+
+#stegano_modal {
+    #buttons {
+        margin-top: 10px;
+        text-align: right;
+        
+        #symbols_cnt {
+            display: block;
+            float: left;
+            color: gray;
+        }
+    }
 }
