@@ -244,6 +244,7 @@ define(["jquery",
                                                     'onprogress ' +
                                                     'onload ' +
                                                     'onloadend');
+            this.$('#progress_container').css('width', '0%');
         }
     });
     
