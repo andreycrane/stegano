@@ -5,6 +5,7 @@
     "upfiles": "Drop file into this section or click to view file dialog",
     "buttons": {
         "close": "Close",
-        "stegano": "Stegano"
+        "stegano": "Stegano",
+        "save": "Save"
     }
 }
